@@ -14,6 +14,10 @@ extern motor right_chassis1;
 extern motor right_chassis2;
 extern motor right_chassis3;
 extern motor_group right_chassis;
+extern motor_group cascade;
+extern motor_group toggle;
+extern digital_out toggle_piston;
+extern digital_out claw_piston;
 extern inertial inertial_sensor;
 extern optical example_optical_sensor;
 extern distance example_distance_sensor;
@@ -25,9 +29,6 @@ extern distance left_sensor;
 extern distance right_sensor;
 extern distance back_sensor;
 
-extern motor arm_motor1;
-extern motor arm_motor2;
-extern motor_group arm_motor;
 extern motor intake_motor;
 extern digital_out claw;
 extern digital_out rush_arm;
@@ -39,9 +40,12 @@ extern digital_out mogo_mech;
 // USER-CONFIGURABLE PARAMETERS (CHANGE BEFORE USING THIS TEMPLATE)
 extern double distance_between_wheels;
 extern double wheel_distance_in;
+extern double cascade_min_height;
+extern double cascade_max_height;
 extern double distance_kp, distance_ki, distance_kd;
 extern double turn_kp, turn_ki, turn_kd;
 extern double heading_correction_kp, heading_correction_ki, heading_correction_kd;
+extern double cascade_kp, cascade_ki, cascade_kd;
 
 extern bool using_horizontal_tracker;
 extern bool using_vertical_tracker;

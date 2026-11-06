@@ -24,6 +24,7 @@ int chassis_flag = 0;
 void runDriver() {
   stopChassis(coast);
   heading_correction = false;
+
   while (true) {
     // [-100, 100] for controller stick axis values
     ch1 = controller_1.Axis1.position();
@@ -46,13 +47,42 @@ void runDriver() {
     button_right_arrow = controller_1.ButtonRight.pressing();
 
     // default tank drive or replace it with your preferred driver code here:
-    driverTank(ch3, ch2);
+    driverArcade(ch3, ch1);
     // Arcade on the left stick:           driverArcade(ch3, ch4);
     // Split arcade (left fwd, right turn): driverArcade(ch3, ch1);
     // X-drive, mecanum or H-drive:         driverHolonomic(ch3, ch4, ch1);  or driverFieldCentric(ch3, ch4, ch1);
     // Tune feel with driver_curve and driver_deadband in custom/src/robot-config.cpp
 
-    wait(10, msec); 
+    double cascade_position = cascade.position(deg);
+    if (r1 && !r2 && cascade_position < cascade_max_height) {
+      cascade.spin(reverse, 12, volt);
+    } else if (r2 && !r1 && cascade_position > cascade_min_height) {
+      cascade.spin(fwd, 12, volt);
+    } else {
+      cascade.stop(hold);
+    }
+
+    if (l1 && !l2) {
+      toggle.spin(reverse, 8, volt);
+    } else if (l2 && !l1) {
+      toggle.spin(fwd, 8, volt);
+    } else {
+      toggle.stop(hold);
+    }
+
+    if (button_b) {
+      claw_piston.set(false);
+    } else if (button_a) {
+      claw_piston.set(true);
+    }
+
+    if (button_x) {
+      toggle_piston.set(true);
+    } else if (button_y) {
+      toggle_piston.set(false);
+    }
+
+    wait(10, msec);
   }
 }
 
@@ -79,12 +109,12 @@ void runPreAutonomous() {
   // startMcl();
 
   // Autonomous routines for the selector, in the order they appear on the Brain screen
-  addAuton("Tuning Test", exampleAuton);
-  addAuton("Odom Test", exampleAuton2);
-  addAuton("Red Goal Rush", redGoalRush);
-  addAuton("Async Example", asyncExample);
-  addAuton("Path Example", pathExample);
-  addAuton("Profiled Example", profiledExample);
-  addAuton("Drive Calibration", calibrateDrive);  // For the simulator (see the docs: Simulator > Calibrating)
+  //addAuton("Tuning Test", exampleAuton);
+  //addAuton("Odom Test", exampleAuton2);
+  //addAuton("Red Goal Rush", redGoalRush);
+  //addAuton("Async Example", asyncExample);
+  //addAuton("Path Example", pathExample);
+  //addAuton("Profiled Example", profiledExample);
+  //addAuton("Drive Calibration", calibrateDrive);  // For the simulator (see the docs: Simulator > Calibrating)
   startAutonSelector();
 }

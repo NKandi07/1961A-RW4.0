@@ -13,7 +13,7 @@
 // Then add each routine to the auton selector with addAuton() in runPreAutonomous() (custom/src/user.cpp)
 // Format: returnType functionName() { code }
 
-void exampleAuton() {
+/*void exampleAuton() {
   // Use this for tuning linear and turn pid
   driveTo(60, 3000);
   turnToAngle(90, 2000);
@@ -34,12 +34,12 @@ void exampleAuton2() {
   driveTo(24, 2000, false, 8);
   turnToAngle(90, 800, false);
   turnToAngle(180, 800, true);
-}
+}*/
 
 /*
  * asyncExample
  * Shows background motions: start a move, run mechanisms while it drives, and stop it early with a sensor.
- */
+ 
 void asyncExample() {
   setPose(0, 0, 0);
 
@@ -60,62 +60,62 @@ void asyncExample() {
     moveToPoint(0, 0, 1, 3000);
   });
   waitUntilTurned(90);
-  arm_motor.spin(fwd, 6, volt);
+  cascade.spin(fwd, 6, volt);
   waitForMotion();
-  arm_motor.stop(hold);
+  cascade.stop(hold);
 }
-
+*/  
 /*
  * pathExample
  * Drives a smooth S-curve with pure pursuit, then backs along it with RAMSETE.
  * Paths use field coordinates, so the auton starts with setPose().
- */
+ 
 void pathExample() {
   setPose(-36, -60, 0);
   Path out = pathFromPoints({{-36, -60}, {-36, -32}, {-12, -22}, {12, -30}, {34, -24}});
   followPath(out, 5000);
   Path back = pathFromPoints({{34, -24}, {12, -30}, {-12, -22}, {-36, -32}, {-36, -52}});
   followPathRamsete(back, 5000, true);
-}
+}*/
 
 /*
  * profiledExample
  * Straight drives and turns with motion profiles: they speed up and slow down smoothly.
- */
+ 
 void profiledExample() {
   driveProfiled(36, 3000);
   turnProfiled(90, 2000);
   driveProfiled(24, 3000);
   turnProfiled(0, 2000);
   driveProfiled(-36, 3000);
-}
+}*/
 
-double arm_pid_target = 0, arm_load_target = 60, arm_store_target = 250, arm_score_target = 470;
-
-/*
- * armPID
- * Runs a single PID update for the arm motor to reach the specified target position.
- * - arm_target: Desired arm position (degrees).
- */
-void armPID(double arm_target) {
-  PID pidarm = PID(0.1, 0, 0.5); // Initialize PID controller for arm
-  pidarm.setTarget(arm_target);   // Set target position
-  pidarm.setIntegralMax(0);  
-  pidarm.setIntegralRange(1);
-  pidarm.setSmallBigErrorTolerance(1, 1);
-  pidarm.setSmallBigErrorDuration(0, 0);
-  pidarm.setDerivativeTolerance(100);
-  pidarm.setArrive(true);
-  arm_motor.spin(fwd, pidarm.update(arm_motor.position(deg)), volt); // Apply PID output to arm motor
-}
+double cascade_pid_target = 0, cascade_load_target = 60, cascade_store_target = 250, cascade_score_target = 470;
 
 /*
- * armPIDLoop
- * Continuously runs the arm PID control in a separate thread, keeping the arm at the target position.
+ * cascadePID
+ * Runs a single PID update for the cascade motor to reach the specified target position.
+ * - cascade_target: Desired cascade position (degrees).
  */
-void armPIDLoop() {
+void cascadePID(double cascade_target) {
+  PID pidcascade = PID(cascade_kp, cascade_ki, cascade_kd); // Initialize PID controller for cascade
+  pidcascade.setTarget(cascade_target);   // Set target position
+  pidcascade.setIntegralMax(0);
+  pidcascade.setIntegralRange(1);
+  pidcascade.setSmallBigErrorTolerance(1, 1);
+  pidcascade.setSmallBigErrorDuration(0, 0);
+  pidcascade.setDerivativeTolerance(100);
+  pidcascade.setArrive(true);
+  cascade.spin(fwd, pidcascade.update(cascade.position(deg)), volt); // Apply PID output to cascade motor
+}
+
+/*
+ * cascadePIDLoop
+ * Continuously runs the cascade PID control in a separate thread, keeping the cascade at the target position.
+ */
+void cascadePIDLoop() {
   while(true) {
-    armPID(arm_pid_target); // Continuously update arm position
+    cascadePID(cascade_pid_target); // Continuously update cascade position
     wait(10, msec);
   }
 }
@@ -124,20 +124,20 @@ void armPIDLoop() {
  * rushClamp
  * Waits until the clamp distance sensor detects an object within 85mm, then closes the claw and lowers the rush arm.
  * Used for quickly grabbing a mobile goal at the start of autonomous.
- */
+ 
 void rushClamp() {
   while(clamp_distance.objectDistance(mm) > 85) { // Wait for object to be close enough
     wait(10, msec);
   }
   claw.set(true);        // Close the claw to grab the goal
   rush_arm.set(false);   // Lower the rush arm
-}
+}*/
 
 /*
  * intakeThread
  * Runs the intake until an object is detected by the optical or distance sensor, then stops the intake.
  * Used for picking up rings or other objects during autonomous.
- */
+ 
 void intakeThread(){
   optical_sensor.setLight(ledState::on);      // Turn on optical sensor light
   optical_sensor.setLightPower(100);          // Set light power to max
@@ -145,31 +145,31 @@ void intakeThread(){
     wait(10, msec);                           // Wait until object is detected
   }
   intake_motor.stop(hold);                    // Stop intake motor and hold
-}
+}*/
 
 /*
  * redGoalRush
  * 2024-2025 World Championship runner-up(1698V) autonomous routine.
  * This routine executes a complex sequence to rush, grab, and score mobile goals and rings.
  * It uses multiple threads for simultaneous arm, clamp, and intake control.
- */
+ 
 void redGoalRush() {
-  arm_motor.setPosition(arm_load_target, deg);         // Set arm to load position
+  cascade.setPosition(cascade_load_target, deg);       // Set cascade to load position
   correct_angle = getInertialHeading();                // Sync correct_angle with inertial sensor
-  arm_pid_target = arm_store_target;                   // Set arm PID target to store position
+  cascade_pid_target = cascade_store_target;           // Set cascade PID target to store position
 
-  thread al = thread(armPIDLoop);                      // Start arm PID loop in a thread
+  thread al = thread(cascadePIDLoop);                  // Start cascade PID loop in a thread
   thread rc = thread(rushClamp);                       // Start clamp routine in a thread
   intake_motor.spin(fwd, 12, volt);                    // Start intake motor at full speed
   thread it = thread(intakeThread);                    // Start intake sensor thread
-  rush_arm.set(true);                                  // Lower rush arm
+  rush_arm.set(true);                                  // Raise rush arm
 
   driveTo(33, 1100, true);                             // Drive forward to first goal
   moveToPoint(-2, 10, -1, 15000, false);               // Pull the goal back
   stopChassis(hold);                                   // Stop chassis and hold position
 
   rc.interrupt();                                      // Stop clamp thread (goal should be clamped)
-  rush_arm.set(true);                                  // Lower rush arm again (ensure down)
+  rush_arm.set(true);                                  // Raise rush arm again (ensure up)
   claw.set(false);                                     // Open claw to release goal
   wait(100, msec);                                     // Brief pause
 
@@ -177,8 +177,8 @@ void redGoalRush() {
   driveTo(3, 800, true, 8);                            // Drive forward slightly
   driveTo(-5, 1000, true);                             // Back up
 
-  rush_arm.set(false);                                 // Raise rush arm
-  wait(200, msec);                                     // Wait for arm to raise
+  rush_arm.set(false);                                 // Lower rush arm
+  wait(200, msec);                                     // Wait for arm to lower
 
   turnToAngle(-90, 800, false);                        // Turn to face the goal backwards
   moveToPoint(0, 26, -1, 2000, false, 6);              // Move backwards into the goal
@@ -219,15 +219,15 @@ void redGoalRush() {
   moveToPoint(-11, 6, -1, 2000, false, 10);            // Move backward out of the corner
   turnToAngle(45, 400, true);                          // Turn to align for wallstake
 
-  al.interrupt();                                      // Stop arm PID thread
-  arm_pid_target = arm_score_target - 100;             // Set arm to scoring position
-  thread al2 = thread(armPIDLoop);                     // Start new arm PID thread
+  al.interrupt();                                      // Stop cascade PID thread
+  cascade_pid_target = cascade_score_target - 100;     // Set cascade to scoring position
+  thread al2 = thread(cascadePIDLoop);                 // Start cascade PID thread
 
   moveToPoint(12, 34, 1, 1700, true, 8);               // Move forward to final wallstake scoring position
 
-  al2.interrupt();                                     // Stop arm PID thread
-  arm_motor.spin(fwd, 1, volt);                        // Spin arm forward slightly
+  al2.interrupt();                                     // Stop cascade PID thread
+  cascade.spin(fwd, 1, volt);                          // Spin cascade forward slightly
 
   turnToAngle(40, 200);                                // Final turn for alignment
   driveChassis(1, 1);                                  // Slow drive forward
-}
+}*/

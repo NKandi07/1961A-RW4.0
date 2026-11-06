@@ -19,53 +19,53 @@ controller controller_1 = controller(primary);
 // Override (2026-27) rule R11 caps drivetrain motors at 55W total, e.g. 4 x 11W, 5 x 11W, or 4 x 11W + 2 x 5.5W.
 // Drive encoder readings come from the FIRST motor in each motor_group, so with mixed motors
 // list an 11W motor first and set wheel_distance_in for that motor's gearing.
-motor left_chassis1 = motor(PORT1, ratio6_1, true);
-motor left_chassis2 = motor(PORT2, ratio6_1, true);
-motor left_chassis3 = motor(PORT3, ratio6_1, false);
-motor_group left_chassis = motor_group(left_chassis1, left_chassis2, left_chassis3);
-motor right_chassis1 = motor(PORT4, ratio6_1, false);
-motor right_chassis2 = motor(PORT5, ratio6_1, false);
-motor right_chassis3 = motor(PORT6, ratio6_1, true);
-motor_group right_chassis = motor_group(right_chassis1, right_chassis2, right_chassis3);
+motor left_chassis_rear = motor(PORT7, ratio6_1, true);
+motor left_chassis_front = motor(PORT20, ratio6_1, true);
+motor_group left_chassis = motor_group(left_chassis_rear, left_chassis_front);
+motor right_chassis_rear = motor(PORT4, ratio6_1, false);
+motor right_chassis_front = motor(PORT11, ratio6_1, false);
+motor_group right_chassis = motor_group(right_chassis_rear, right_chassis_front);
+motor right_casc2 = motor(PORT1, ratio6_1, true);
+motor right_casc1 = motor(PORT2, ratio6_1, false);
+motor left_casc1 = motor(PORT10, ratio6_1, true);
+motor_group cascade = motor_group(right_casc1, right_casc2, left_casc1);
+motor right_toggle = motor(PORT3, ratio18_1, true);
+motor left_toggle = motor(PORT9, ratio18_1, false);
+motor_group toggle = motor_group(right_toggle, left_toggle);
 // X-drive, mecanum or H-drive: see the docs (Guide > Drive Types) for the motors to make here and
 // the line to add to runPreAutonomous() in custom/src/user.cpp
 
-inertial inertial_sensor = inertial(PORT7);
-optical example_optical_sensor = optical(PORT8);
-distance example_distance_sensor = distance(PORT9);
-digital_out example_piston = digital_out(Brain.ThreeWirePort.A);
+inertial inertial_sensor = inertial(PORT8);
+optical example_optical_sensor = optical(PORT5);
+distance example_distance_sensor = distance(PORT6);
+digital_out example_piston = digital_out(Brain.ThreeWirePort.C);
+digital_out toggle_piston = digital_out(Brain.ThreeWirePort.A);
+digital_out claw_piston = digital_out(Brain.ThreeWirePort.B);
+
 
 // Format is rotation(port, reversed)
 // just set these to random ports if you don't use tracking wheels
-rotation horizontal_tracker = rotation(PORT10, true);
-rotation vertical_tracker = rotation(PORT11, true);
+rotation horizontal_tracker = rotation(PORT19, true);
+rotation vertical_tracker = rotation(PORT12, true);
 
 // Distance reset sensors
 // Set these to random ports if you are not using distance resets
-distance front_sensor = distance(PORT12);
-distance left_sensor = distance(PORT13);
-distance right_sensor = distance(PORT14);
-distance back_sensor = distance(PORT15);
-
-// game specific devices for high stakes
-motor arm_motor1 = motor(PORT16, ratio18_1, true);
-motor arm_motor2 = motor(PORT17, ratio18_1, false);
-motor_group arm_motor = motor_group(arm_motor1, arm_motor2);
-motor intake_motor = motor(PORT18, ratio18_1, true);
-digital_out claw = digital_out(Brain.ThreeWirePort.B);
-digital_out rush_arm = digital_out(Brain.ThreeWirePort.C);
-optical optical_sensor = optical(PORT19);
-distance intake_distance = distance(PORT20);
-distance clamp_distance = distance(PORT21);
-digital_out mogo_mech = digital_out(Brain.ThreeWirePort.D);
+distance front_sensor = distance(PORT13);
+distance left_sensor = distance(PORT14);
+distance right_sensor = distance(PORT15);
+distance back_sensor = distance(PORT16);
 
 // ============================================================================
 // USER-CONFIGURABLE PARAMETERS (CHANGE BEFORE USING THIS TEMPLATE)
 // ============================================================================
 
+// Cascade driver-control limits, in motor degrees (keep minimum <= maximum)
+double cascade_min_height = -10000;
+double cascade_max_height = 10000;
+
 // Distance between the middles of the left and right wheels of the drive (in inches)
 // (mecanum: plus the distance between the front and back wheels, see the docs: Guide > Drive Types)
-double distance_between_wheels = 12.3;
+double distance_between_wheels = 9.75;
 
 // motor to wheel gear ratio * wheel diameter (in inches) * pi
 // (X-drive: also * 0.707, see the docs: Guide > Drive Types)
@@ -75,20 +75,21 @@ double wheel_distance_in = (36.0 / 48.0) * 3.17 * M_PI;
 // distance_* : Linear PID for straight driving
 // turn_*     : PID for turning in place
 // heading_correction_* : PID for heading correction during linear movement
-double distance_kp = 1.1, distance_ki = 0.1, distance_kd = 7;
-double turn_kp = 0.3, turn_ki = 0, turn_kd = 2.5;
-double heading_correction_kp = 0.6, heading_correction_ki = 0, heading_correction_kd = 4;
+double distance_kp = 1.1, distance_ki = 0.15, distance_kd = 3;
+double turn_kp = 0.785, turn_ki = 0, turn_kd = 2.5;
+double heading_correction_kp = 3, heading_correction_ki = 0, heading_correction_kd = 1;
+double cascade_kp = 0.1, cascade_ki = 0, cascade_kd = 0.5;
 
 // Enable or disable the use of tracking wheels
-bool using_horizontal_tracker = false;  // Set to true if a horizontal tracking wheel is installed and used for odometry
-bool using_vertical_tracker = false;   // Set to true if a vertical tracking wheel is installed and used for odometry
+bool using_horizontal_tracker = true;  // Set to true if a horizontal tracking wheel is installed and used for odometry
+bool using_vertical_tracker = true;   // Set to true if a vertical tracking wheel is installed and used for odometry
 
 // IGNORE THESE IF YOU ARE NOT USING TRACKING WHEELS
 // These comments are in the perspective of a top down view of the robot when the robot is facing vertical
 // Vertical distance from the center of the bot to the horizontal tracking wheel (in inches, positive is when the wheel is behind the center)
-double horizontal_tracker_dist_from_center = 2.71875;
+double horizontal_tracker_dist_from_center = 0;
 // Horizontal distance from the center of the bot to the vertical tracking wheel (in inches, positive is when the wheel is to the right of the center)
-double vertical_tracker_dist_from_center = -0.03125;
+double vertical_tracker_dist_from_center = 0;
 double horizontal_tracker_diameter = 1.975; // Diameter of the horizontal tracker wheel (in inches)
 double vertical_tracker_diameter = 1.975; // Diameter of the vertical tracker wheel (in inches)
 
