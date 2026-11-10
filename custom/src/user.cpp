@@ -58,6 +58,10 @@ void runDriver() {
       cascade.spin(reverse, 12, volt);
     } else if (r2 && !r1 && cascade_position > cascade_min_height) {
       cascade.spin(fwd, 12, volt);
+    } else if (button_up_arrow && !button_down_arrow && cascade_position < cascade_max_height) {
+      cascade.spin(reverse, 4, volt);
+    } else if (button_down_arrow && !button_up_arrow && cascade_position > cascade_min_height) {
+      cascade.spin(fwd, 3, volt);
     } else {
       cascade.stop(hold);
     }
@@ -71,9 +75,9 @@ void runDriver() {
     }
 
     if (button_b) {
-      claw_piston.set(false);
-    } else if (button_a) {
       claw_piston.set(true);
+    } else if (button_a) {
+      claw_piston.set(false);
     }
 
     if (button_x) {
@@ -107,9 +111,11 @@ void runPreAutonomous() {
   // Optional: MCL uses the distance sensors to keep odometry from drifting while driving.
   // Needs field-centered coordinates, so start each auton with setPose() at the real field position.
   // startMcl();
-
+  claw_piston.set(false);
   // Autonomous routines for the selector, in the order they appear on the Brain screen
-  //addAuton("Tuning Test", exampleAuton);
+  //addAuton("Left 3 Pin", southAuton);
+  addAuton("Side for South", southSideAuto); 
+  //addAuton("Skills for South", southSkills); 
   //addAuton("Odom Test", exampleAuton2);
   //addAuton("Red Goal Rush", redGoalRush);
   //addAuton("Async Example", asyncExample);

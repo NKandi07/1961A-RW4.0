@@ -35,6 +35,119 @@ void exampleAuton2() {
   turnToAngle(90, 800, false);
   turnToAngle(180, 800, true);
 }*/
+void southSideAuto(){
+  toggle.setVelocity(100, pct);
+  toggle.spinFor(reverse, 2, rev);
+  cascade.setPosition(0, deg); // Call while physically down
+  wait(500, msec); //Brings piston down
+  driveTo(-19, 3000, true, 8);
+  cascade.setVelocity(80, pct);
+  cascade.spinToPosition(1000, deg);
+  turnToAngle(270, 2000, true, 8);
+  driveTo(-18.5, 2000, true, 8);
+  wait(250, msec);
+  driveTo(-6.35, 1000, false, 3);
+  wait(250, msec);
+  stopChassis(hold);
+  driveTo(1.25, 1000, true, 4);
+  wait(250, msec);
+  cascade.spinToPosition(0, deg);
+  wait(250, msec);
+  claw_piston.set(true);
+  wait(500, msec); // Wait for the claw to fully open
+  driveTo(5.75, 2000, true, 8);
+  cascade.spinToPosition(0, deg);
+  /*
+  turnToAngle(210, 2000, true, 8);
+  driveTo(-18, 2000, true, 8);
+  driveTo(-6.25, 2000, true, 2);
+  claw_piston.set(false);
+  wait(250, msec); // Wait for the claw to fully close
+  cascade.spinToPosition(1600, deg);
+  wait(250, msec);
+  turnToAngle(-22.5, 2000, true, 4);
+  driveTo(-12, 2000, true, 8);
+  cascade.spinToPosition(400, deg);
+  claw_piston.set(true);
+  wait(1500, msec); // Wait for the claw to fully open
+  cascade.spinToPosition(800, deg);*/
+}
+
+void southSkills(){
+  toggle.setVelocity(100, pct);
+  toggle.spinFor(reverse, 2, rev);
+  cascade.setPosition(0, deg); // Call while physically down
+  wait(500, msec); //Brings piston down
+  driveTo(-19, 3000, true, 8);
+  cascade.setVelocity(80, pct);
+  cascade.spinToPosition(1000, deg);
+  turnToAngle(90, 2000, true, 8);
+  driveTo(-18.5, 2000, true, 8);
+  wait(250, msec);
+  driveTo(-6.35, 1000, false, 3);
+  wait(250, msec);
+  stopChassis(hold);
+  driveTo(1.45, 1000, true, 4);
+  wait(250, msec);
+  cascade.spinToPosition(0, deg);
+  wait(250, msec);
+  claw_piston.set(true);
+  wait(500, msec); // Wait for the claw to fully open
+  /*driveTo(5.75, 2000, true, 8);
+  cascade.spinToPosition(0, deg);
+  turnToAngle(30, 2000, true, 8);
+  driveTo(-18, 2000, true, 8);
+  driveTo(-6.25, 2000, true, 2);
+  claw_piston.set(false);
+  wait(250, msec); // Wait for the claw to fully close
+  cascade.spinToPosition(1600, deg);
+  wait(250, msec);
+  turnToAngle(167.5, 2000, true, 4);
+  driveTo(-12, 2000, true, 8);
+  cascade.spinToPosition(400, deg);
+  claw_piston.set(true);
+  wait(1500, msec); // Wait for the claw to fully open
+  cascade.spinToPosition(800, deg);
+  turnToAngle(150, 2000, false, 5);
+  driveTo(30, 3000, true, 6);*/
+}
+
+void southAuton(){
+  toggle.setVelocity(100, pct);
+  toggle.spinFor(reverse, 2, rev);
+  cascade.setPosition(0, deg); // Call while physically down
+  wait(500, msec); //Brings piston down
+  driveTo(-19, 3000, true, 8);
+  cascade.setVelocity(80, pct);
+  cascade.spinToPosition(1000, deg);
+  turnToAngle(90, 2000, true, 8);
+  driveTo(-18.5, 2000, true, 8);
+  wait(250, msec);
+  driveTo(-6.35, 1000, false, 3);
+  wait(250, msec);
+  stopChassis(hold);
+  driveTo(1.2, 1000, true, 4);
+  wait(250, msec);
+  cascade.spinToPosition(0, deg);
+  wait(250, msec);
+  claw_piston.set(true);
+  wait(500, msec); // Wait for the claw to fully open
+  driveTo(5.75, 2000, true, 8);
+  cascade.spinToPosition(0, deg);
+  turnToAngle(30, 2000, true, 8);
+  driveTo(-18, 2000, true, 8);
+  driveTo(-6.25, 2000, true, 2);
+  claw_piston.set(false);
+  wait(250, msec); // Wait for the claw to fully close
+  cascade.spinToPosition(1600, deg);
+  wait(250, msec);
+  turnToAngle(167.5, 2000, true, 4);
+  driveTo(-12, 2000, true, 8);
+  cascade.spinToPosition(400, deg);
+  claw_piston.set(true);
+  wait(500, msec); 
+  // Wait for the claw to fully open
+}
 
 /*
  * asyncExample
