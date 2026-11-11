@@ -35,6 +35,7 @@ void exampleAuton2() {
   turnToAngle(90, 800, false);
   turnToAngle(180, 800, true);
 }*/
+
 void southSideAuto(){
   toggle.setVelocity(100, pct);
   toggle.spinFor(reverse, 2, rev);
@@ -91,9 +92,9 @@ void southSkills(){
   wait(250, msec);
   cascade.spinToPosition(0, deg);
   wait(250, msec);
-  claw_piston.set(true);
-  wait(500, msec); // Wait for the claw to fully open
-  /*driveTo(5.75, 2000, true, 8);
+  claw_piston.set(true); // Wait for the claw to fully open, scoring 1st pin (preload)
+  wait(500, msec); 
+  driveTo(5.75, 2000, true, 8);
   cascade.spinToPosition(0, deg);
   turnToAngle(30, 2000, true, 8);
   driveTo(-18, 2000, true, 8);
@@ -105,11 +106,42 @@ void southSkills(){
   turnToAngle(167.5, 2000, true, 4);
   driveTo(-12, 2000, true, 8);
   cascade.spinToPosition(400, deg);
-  claw_piston.set(true);
-  wait(1500, msec); // Wait for the claw to fully open
-  cascade.spinToPosition(800, deg);
-  turnToAngle(150, 2000, false, 5);
-  driveTo(30, 3000, true, 6);*/
+  claw_piston.set(true); // Wait for the claw to fully open, scoring 1st field pin-stack
+  wait(500, msec); 
+  turnToAngle(225, 2000, true, 5);
+  driveTo(15, 3000, true, 8);
+  turnToAngle(135, 2000, true, 5);
+  cascade.spinToPosition(0, deg);
+  driveTo(-15, 3000, true, 8);
+  wait(250, msec);
+  claw_piston.set(false); //grabs pin
+  wait(250, msec);
+  cascade.spinToPosition(2000, deg);
+  wait(250, msec); // Wait for the cascade to fully extend
+  turnToAngle(270, 2000, true, 4);
+  driveTo(-15, 3000, true, 4);
+  cascade.spinToPosition(1200, deg);
+  wait(250, msec);
+  claw_piston.set(true); // Wait for the claw to fully open, scoring 2nd field pin-stack
+  wait(500, msec); 
+  driveTo(25, 3000, true, 8);
+  cascade.spinToPosition(0, deg);
+  turnToAngle(180, 2000, true, 4);
+  driveTo(-15, 3000, true, 6);
+  claw_piston.set(false);
+  wait(250, msec); // Wait for the claw to fully close
+  cascade.spinToPosition(200, deg);
+  wait(250, msec); // Wait for the cascade to fully retract
+  driveTo(15, 3000, true, 6);
+  turnToAngle(270, 2000, true, 6);
+  cascade.spinToPosition(2400, deg);
+  wait(250, msec); // Wait for the cascade to fully extend
+  driveTo(-25, 3000, true, 4);
+  wait(250, msec);
+  cascade.spinToPosition(1600, deg);
+  wait(250, msec);
+  claw_piston.set(true); // Wait for the claw to fully open, scoring 3rd field pin-stack (matchloaded)
+  wait(500, msec);
 }
 
 void southAuton(){
