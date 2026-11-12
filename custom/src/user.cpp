@@ -30,6 +30,17 @@ bool last_button_a = false;
 bool toggle_piston_state = false;
 bool last_button_left_arrow = false;
 
+// Manual autonomous trigger edge tracking
+bool last_button_x = false;
+
+// Auto-lift cascade after claw activates (grabs)
+bool auto_lifting = false;
+double auto_lift_start_pos = 0;
+int auto_lift_delay_timer = 0; // Delay ticks (10ms each) to let claw seal before lifting
+int auto_lift_timeout = 0;     // Safety timeout ticks (10ms each) to prevent runaway lift
+const double auto_lift_degrees = 400;  // Amount to lift after grabbing (~1 inch off floor to clear tiles)
+const double auto_lift_voltage = 5.0; // Controlled lift speed to prevent momentum overshoot
+
 void runDriver() {
   stopChassis(coast);
   heading_correction = false;
@@ -67,15 +78,32 @@ void runDriver() {
     // - R2: Fast lift downward at 70% speed (8.4V instead of 12V)
     // - Up Arrow: Fine adjustment upward (4V)
     // - Down Arrow: Fine adjustment downward at 70% speed (2.1V instead of 3V)
+    // - Auto-lift: Automatically raises cascade ~75 deg (~1 inch) after claw grabs
     double cascade_position = cascade.position(deg);
     if (r1 && !r2 && cascade_position < cascade_max_height) {
       cascade.spin(reverse, 12, volt);
+      auto_lifting = false; // Driver manual input cancels auto-lift
     } else if (r2 && !r1 && cascade_position > cascade_min_height) {
       cascade.spin(fwd, 8.4, volt); // 70% of original 12V speed
+      auto_lifting = false; // Driver manual input cancels auto-lift
     } else if (button_up_arrow && !button_down_arrow && cascade_position < cascade_max_height) {
       cascade.spin(reverse, 4, volt);
+      auto_lifting = false; // Driver manual input cancels auto-lift
     } else if (button_down_arrow && !button_up_arrow && cascade_position > cascade_min_height) {
       cascade.spin(fwd, 2.1, volt); // 70% of original 3V speed
+      auto_lifting = false; // Driver manual input cancels auto-lift
+    } else if (auto_lifting) {
+      if (auto_lift_delay_timer > 0) {
+        auto_lift_delay_timer--;       // Wait for claw pneumatics to seal tight before lifting
+        auto_lift_start_pos = cascade.position(deg); // Keep updating start position right until motion begins
+        cascade.stop(hold);
+      } else if (std::fabs(cascade.position(deg) - auto_lift_start_pos) < auto_lift_degrees && auto_lift_timeout > 0) {
+        auto_lift_timeout--;
+        cascade.spin(reverse, auto_lift_voltage, volt); // Smooth, controlled lift upward
+      } else {
+        auto_lifting = false;          // Target height reached or safety timeout
+        cascade.stop(hold);
+      }
     } else {
       cascade.stop(hold);
     }
@@ -95,6 +123,15 @@ void runDriver() {
     if (button_a && !last_button_a) {
       claw_state = !claw_state;        // Invert state: open <-> closed
       claw_piston.set(claw_state);     // Apply new state to 3-wire solenoid B
+
+      // When claw activates/clamps onto a pin (!claw_state), automatically lift cascade slightly
+      // so the pin clears the floor and doesn't drag while driving.
+      if (!claw_state) {
+        auto_lift_delay_timer = 15;    // 150ms delay for pneumatic claw to grip firmly
+        auto_lift_start_pos = cascade.position(deg);
+        auto_lift_timeout = 35;        // Max 350ms duration safety cap
+        auto_lifting = true;
+      }
     }
     last_button_a = button_a;          // Update previous button state for edge detection
 
@@ -106,6 +143,15 @@ void runDriver() {
       toggle_piston.set(toggle_piston_state);       // Apply new state to 3-wire solenoid A
     }
     last_button_left_arrow = button_left_arrow;    // Update previous button state for edge detection
+
+    // Manual autonomous trigger:
+    // Press Button X during Driver mode to run the currently selected autonomous routine
+    // (such as Skills for South) without needing field control or a competition switch.
+    if (button_x && !last_button_x) {
+      stopChassis(coast);
+      runSelectedAuton();
+    }
+    last_button_x = button_x;
 
     wait(10, msec);
   }
@@ -139,8 +185,8 @@ void runPreAutonomous() {
   toggle_piston_state = false;
   // Autonomous routines for the selector, in the order they appear on the Brain screen
   //addAuton("Left 3 Pin", southAuton);
-  addAuton("Side for South", southSideAuto); 
-  //addAuton("Skills for South", southSkills); 
+  //addAuton("Side for South", southSideAuto); 
+  addAuton("Skills for South", southSkills); 
   //addAuton("Odom Test", exampleAuton2);
   //addAuton("Red Goal Rush", redGoalRush);
   //addAuton("Async Example", asyncExample);

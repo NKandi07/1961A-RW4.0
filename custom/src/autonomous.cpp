@@ -85,63 +85,125 @@ void southSkills(){
   turnToAngle(90, 2000, true, 8);
   driveTo(-18.5, 2000, true, 8);
   wait(250, msec);
-  driveTo(-6.35, 1000, false, 3);
+  driveTo(-6, 1000, false, 3);
   wait(250, msec);
   stopChassis(hold);
-  driveTo(1.45, 1000, true, 4);
   wait(250, msec);
-  cascade.spinToPosition(0, deg);
+  driveTo(1.5, 1000, true, 3);
+  wait(250, msec);
+  cascade.spinToPosition(525, deg);
   wait(250, msec);
   claw_piston.set(true); // Wait for the claw to fully open, scoring 1st pin (preload)
   wait(500, msec); 
-  driveTo(5.75, 2000, true, 8);
-  cascade.spinToPosition(0, deg);
-  turnToAngle(30, 2000, true, 8);
-  driveTo(-18, 2000, true, 8);
-  driveTo(-6.25, 2000, true, 2);
+  // Start driving forward 5.75" in the background
+  runAsync([]{ driveTo(6.75, 2000, true, 8); });
+
+  // Wait until the robot has moved forward 2 inches to safely clear the goal
+  waitUntilTraveled(2);
+
+  // Lower cascade down to 0 deg non-blocking while the robot continues driving
+  cascade.spinToPosition(0, deg, false);
+
+  // Wait for the forward drive motion to finish before starting the turn
+  waitForMotion();
+  turnToAngle(32.5, 2000, true, 8);
+  driveTo(-19, 2000, true, 8);
+  driveTo(-6.5, 1500, true, 2);
   claw_piston.set(false);
   wait(250, msec); // Wait for the claw to fully close
   cascade.spinToPosition(1600, deg);
   wait(250, msec);
   turnToAngle(167.5, 2000, true, 4);
-  driveTo(-12, 2000, true, 8);
-  cascade.spinToPosition(400, deg);
+  driveTo(-12, 2000, true, 6);
+  cascade.setVelocity(75, pct);
+  cascade.spinToPosition(900, deg);
+  cascade.setVelocity(100, pct);
+  wait(200, msec);
   claw_piston.set(true); // Wait for the claw to fully open, scoring 1st field pin-stack
   wait(500, msec); 
   turnToAngle(225, 2000, true, 5);
   driveTo(15, 3000, true, 8);
-  turnToAngle(135, 2000, true, 5);
+  turnToAngle(140, 2000, true, 5);
   cascade.spinToPosition(0, deg);
-  driveTo(-15, 3000, true, 8);
+  driveTo(-20, 3000, true, 8);
+  driveTo(-4, 2000, true, 2);
   wait(250, msec);
   claw_piston.set(false); //grabs pin
   wait(250, msec);
   cascade.spinToPosition(2000, deg);
   wait(250, msec); // Wait for the cascade to fully extend
+  driveTo(-9, 2000, true, 5);
+  wait(200, msec);
   turnToAngle(270, 2000, true, 4);
-  driveTo(-15, 3000, true, 4);
-  cascade.spinToPosition(1200, deg);
+  driveTo(-17, 3000, true, 4);
+  cascade.spinToPosition(1700, deg);
   wait(250, msec);
   claw_piston.set(true); // Wait for the claw to fully open, scoring 2nd field pin-stack
   wait(500, msec); 
-  driveTo(25, 3000, true, 8);
+  driveTo(34, 3000, true, 8);
   cascade.spinToPosition(0, deg);
   turnToAngle(180, 2000, true, 4);
-  driveTo(-15, 3000, true, 6);
-  claw_piston.set(false);
-  wait(250, msec); // Wait for the claw to fully close
-  cascade.spinToPosition(200, deg);
-  wait(250, msec); // Wait for the cascade to fully retract
-  driveTo(15, 3000, true, 6);
+  driveTo(-14.5, 3000, true, 6);
+  stopChassis(hold);                // 1. Lock the chassis wheels firmly
+  wait(200, msec);                 // 2. Settle robot before grabbing
+  claw_piston.set(false);          // 3. Grab the pin
+  wait(400, msec);                 // 4. Give claw pneumatics time to close tight
+  cascade.setVelocity(50, pct);
+  cascade.spinToPosition(400, deg);// 5. Lift cascade up to clear the floor
+  cascade.setVelocity(50, pct);
+  wait(400, msec);                 // 6. Settle lift before driving away
+  driveTo(6, 3000, true, 4);
+  cascade.spinToPosition(800, deg);
+  driveTo(4, 3000, true, 6);
   turnToAngle(270, 2000, true, 6);
-  cascade.spinToPosition(2400, deg);
+  cascade.spinToPosition(2500, deg);
   wait(250, msec); // Wait for the cascade to fully extend
-  driveTo(-25, 3000, true, 4);
+  driveTo(-31, 3000, true, 4);
+  stopChassis(hold); 
   wait(250, msec);
-  cascade.spinToPosition(1600, deg);
+  cascade.spinToPosition(2100, deg);
   wait(250, msec);
   claw_piston.set(true); // Wait for the claw to fully open, scoring 3rd field pin-stack (matchloaded)
   wait(500, msec);
+  driveTo(-3, 3000, true, 5);
+
+  // Start driving 34 inches forward in the background
+  runAsync([]{ driveTo(34, 3000, true, 8); });
+
+  // Brief pause (100ms) to ensure the robot clears the goal post
+  wait(100, msec);
+
+  // Lower cascade down to 0 deg as fast as possible non-blocking while robot continues driving
+  cascade.setVelocity(100, pct); // Maximum speed (100%) so it snaps down fast and doesn't get caught
+  cascade.spinToPosition(0, deg, false);
+
+  // Wait for the forward drive motion to finish before starting the turn
+  waitForMotion();
+  turnToAngle(180, 2000, true, 4);
+  driveTo(-14, 3000, true, 6);
+  stopChassis(hold);                // 1. Lock the chassis wheels firmly
+  wait(200, msec);                 // 2. Settle robot before grabbing
+  claw_piston.set(false);          // 3. Grab the pin
+  wait(400, msec);                 // 4. Give claw pneumatics time to close tight
+  cascade.setVelocity(50, pct);
+  cascade.spinToPosition(400, deg);// 5. Lift cascade up to clear the floor
+  cascade.setVelocity(50, pct);
+  wait(400, msec);                 // 6. Settle lift before driving away
+  driveTo(6, 3000, true, 4);
+  cascade.spinToPosition(900, deg);
+  driveTo(50, 3000, true, 6);
+  turnToAngle(200, 2000, true, 4);
+  wait(200,msec);
+  driveTo(-9, 3000, true, 4);
+  wait(250, msec);
+  stopChassis(hold);
+  wait(250, msec);
+  driveTo(1.5, 1000, true, 3);
+  wait(250, msec);
+  cascade.spinToPosition(525, deg);
+  wait(250, msec);
+  claw_piston.set(true); // Wait for the claw to fully open, scoring 1st pin (preload)
+  wait(500, msec); 
 }
 
 void southAuton(){
