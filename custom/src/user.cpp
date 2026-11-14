@@ -33,6 +33,11 @@ bool last_button_left_arrow = false;
 // Manual autonomous trigger edge tracking
 bool last_button_x = false;
 
+// L2 edge tracking & auto-lower cascade to 0 deg
+bool last_l2 = false;
+bool auto_lowering = false;
+int auto_lower_timeout = 0; // Safety timeout ticks (10ms each)
+
 // Auto-lift cascade after claw activates (grabs)
 bool auto_lifting = false;
 double auto_lift_start_pos = 0;
@@ -66,8 +71,17 @@ void runDriver() {
     button_left_arrow = controller_1.ButtonLeft.pressing();
     button_right_arrow = controller_1.ButtonRight.pressing();
 
+    // Smoothly scale drivetrain speed down from 100% (<= 900 deg) to 50% (>= 1200 deg)
+    double cascade_height = std::fabs(cascade.position(deg));
+    double drive_scale = 1.0;
+    if (cascade_height >= 1200.0) {
+      drive_scale = 0.5;
+    } else if (cascade_height > 900.0) {
+      drive_scale = 1.0 - 0.5 * ((cascade_height - 900.0) / 300.0);
+    }
+
     // default tank drive or replace it with your preferred driver code here:
-    driverArcade(ch3, ch1);
+    driverArcade(ch3 * drive_scale, ch1 * drive_scale);
     // Arcade on the left stick:           driverArcade(ch3, ch4);
     // Split arcade (left fwd, right turn): driverArcade(ch3, ch1);
     // X-drive, mecanum or H-drive:         driverHolonomic(ch3, ch4, ch1);  or driverFieldCentric(ch3, ch4, ch1);
@@ -82,16 +96,20 @@ void runDriver() {
     double cascade_position = cascade.position(deg);
     if (r1 && !r2 && cascade_position < cascade_max_height) {
       cascade.spin(reverse, 12, volt);
-      auto_lifting = false; // Driver manual input cancels auto-lift
+      auto_lifting = false;  // Driver manual input cancels auto-lift
+      auto_lowering = false; // Driver manual input cancels auto-lower
     } else if (r2 && !r1 && cascade_position > cascade_min_height) {
       cascade.spin(fwd, 8.4, volt); // 70% of original 12V speed
-      auto_lifting = false; // Driver manual input cancels auto-lift
+      auto_lifting = false;  // Driver manual input cancels auto-lift
+      auto_lowering = false; // Driver manual input cancels auto-lower
     } else if (button_up_arrow && !button_down_arrow && cascade_position < cascade_max_height) {
       cascade.spin(reverse, 4, volt);
-      auto_lifting = false; // Driver manual input cancels auto-lift
+      auto_lifting = false;  // Driver manual input cancels auto-lift
+      auto_lowering = false; // Driver manual input cancels auto-lower
     } else if (button_down_arrow && !button_up_arrow && cascade_position > cascade_min_height) {
       cascade.spin(fwd, 2.1, volt); // 70% of original 3V speed
-      auto_lifting = false; // Driver manual input cancels auto-lift
+      auto_lifting = false;  // Driver manual input cancels auto-lift
+      auto_lowering = false; // Driver manual input cancels auto-lower
     } else if (auto_lifting) {
       if (auto_lift_delay_timer > 0) {
         auto_lift_delay_timer--;       // Wait for claw pneumatics to seal tight before lifting
@@ -104,17 +122,32 @@ void runDriver() {
         auto_lifting = false;          // Target height reached or safety timeout
         cascade.stop(hold);
       }
+    } else if (auto_lowering) {
+      if (std::fabs(cascade_position) > 2.0 && auto_lower_timeout > 0) {
+        auto_lower_timeout--; // Let cascade.spinToPosition(0, deg, false) finish moving to 0
+      } else {
+        auto_lowering = false;
+        cascade.stop(hold);
+      }
     } else {
       cascade.stop(hold);
     }
 
-    if (l1 && !l2) {
+    if (l1) {
       toggle.spin(reverse, 8, volt);
-    } else if (l2 && !l1) {
-      toggle.spin(fwd, 8, volt);
     } else {
       toggle.stop(hold);
     }
+
+    // L2: Bring cascade down to 0 deg at 70% speed
+    if (l2 && !last_l2) {
+      auto_lifting = false;
+      auto_lowering = true;
+      auto_lower_timeout = 250; // 2.5s safety cap
+      cascade.setVelocity(70, pct);
+      cascade.spinToPosition(0, deg, false);
+    }
+    last_l2 = l2;
 
     // Claw pneumatic control:
     // Controlled ONLY by Button A as a toggle (Button B removed).
@@ -123,15 +156,6 @@ void runDriver() {
     if (button_a && !last_button_a) {
       claw_state = !claw_state;        // Invert state: open <-> closed
       claw_piston.set(claw_state);     // Apply new state to 3-wire solenoid B
-
-      // When claw activates/clamps onto a pin (!claw_state), automatically lift cascade slightly
-      // so the pin clears the floor and doesn't drag while driving.
-      if (!claw_state) {
-        auto_lift_delay_timer = 15;    // 150ms delay for pneumatic claw to grip firmly
-        auto_lift_start_pos = cascade.position(deg);
-        auto_lift_timeout = 35;        // Max 350ms duration safety cap
-        auto_lifting = true;
-      }
     }
     last_button_a = button_a;          // Update previous button state for edge detection
 
@@ -184,9 +208,12 @@ void runPreAutonomous() {
   toggle_piston.set(false);
   toggle_piston_state = false;
   // Autonomous routines for the selector, in the order they appear on the Brain screen
-  //addAuton("Left 3 Pin", southAuton);
+  addAuton("Left 3 Pin", southAuton);
   //addAuton("Side for South", southSideAuto); 
-  addAuton("Skills for South", southSkills); 
+  //addAuton("Skills for South", southSkills); 
+  //addAuton("Skills Part 2", southSkillsPart2);
+  //addAuton("Calibrate Odom", calibrateVerticalOffset);
+  //addAuton("Test Odom Move", testOdomMove);
   //addAuton("Odom Test", exampleAuton2);
   //addAuton("Red Goal Rush", redGoalRush);
   //addAuton("Async Example", asyncExample);

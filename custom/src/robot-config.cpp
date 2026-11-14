@@ -45,8 +45,8 @@ digital_out claw_piston = digital_out(Brain.ThreeWirePort.B);
 
 // Format is rotation(port, reversed)
 // just set these to random ports if you don't use tracking wheels
-rotation horizontal_tracker = rotation(PORT19, true);
-rotation vertical_tracker = rotation(PORT12, true);
+rotation horizontal_tracker = rotation(PORT19, false);
+rotation vertical_tracker = rotation(PORT12, false);
 
 // Distance reset sensors
 // Set these to random ports if you are not using distance resets
@@ -87,11 +87,11 @@ bool using_vertical_tracker = true;   // Set to true if a vertical tracking whee
 // IGNORE THESE IF YOU ARE NOT USING TRACKING WHEELS
 // These comments are in the perspective of a top down view of the robot when the robot is facing vertical
 // Vertical distance from the center of the bot to the horizontal tracking wheel (in inches, positive is when the wheel is behind the center)
-double horizontal_tracker_dist_from_center = 0;
+double horizontal_tracker_dist_from_center = 2.5;
 // Horizontal distance from the center of the bot to the vertical tracking wheel (in inches, positive is when the wheel is to the right of the center)
-double vertical_tracker_dist_from_center = 0;
-double horizontal_tracker_diameter = 1.975; // Diameter of the horizontal tracker wheel (in inches)
-double vertical_tracker_diameter = 1.975; // Diameter of the vertical tracker wheel (in inches)
+double vertical_tracker_dist_from_center = .5;
+double horizontal_tracker_diameter = 2; // Diameter of the horizontal tracker wheel (in inches)
+double vertical_tracker_diameter = 2; // Diameter of the vertical tracker wheel (in inches)
 
 // Distance Reset setup
 // If you are not using all four distance sensors, just set the unused ones to 0

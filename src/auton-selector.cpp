@@ -83,7 +83,7 @@ void drawSelector() {
     return;
   }
   char header[64];
-  snprintf(header, sizeof(header), "Auton: %s", auton_names[selected_auton]);
+  snprintf(header, sizeof(header), "1961A | Auton: %s", auton_names[selected_auton]);
   hw::screenText(8, 22, true, white, black, header);
 
   for (int i = 0; i < auton_count; i++) {
